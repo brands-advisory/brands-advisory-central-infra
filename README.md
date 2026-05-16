@@ -10,11 +10,10 @@ All resources are deployed via Bicep using `az deployment group create` and para
 
 - [Deployed Resources](#deployed-resources)
 - [Repository Structure](#repository-structure)
-- [Initial Setup (once per project)](#initial-setup-once-per-project)
+- [Initial Setup (once)](#initial-setup-once)
   - [1. Create Resource Group](#1-create-resource-group)
   - [2. Create Deployment Service Principal](#2-create-deployment-service-principal)
-  - [3. Assign Roles on Resource Group](#3-assign-roles-on-resource-group)
-  - [4. Add OIDC Federated Credential](#4-add-oidc-federated-credential)
+  - [3. Add OIDC Federated Credential](#3-add-oidc-federated-credential)
 - [Setup](#setup)
   - [Prerequisites](#prerequisites)
   - [Local Configuration](#local-configuration)
@@ -161,7 +160,7 @@ brands-advisory-central-infra/
 
 ---
 
-## Initial Setup (once per project)
+## Initial Setup (once)
 
 Before GitHub Actions can deploy infrastructure, a one-time manual setup is required
 to bootstrap the deployment identity and permissions.
@@ -182,27 +181,7 @@ Use `Create-ServicePrincipalForDeployment.ps1` from [cloud-admin-toolkit](https:
 .\Create-ServicePrincipalForDeployment.ps1 -ConfigName <project-name>
 ```
 
-### 3. Assign Roles on Resource Group
-
-Two roles are required on the resource group:
-
-```bash
-# Contributor — create and manage all resources
-az role assignment create \
-  --assignee <service-principal-app-id> \
-  --role "Contributor" \
-  --scope "/subscriptions/<subscription-id>/resourceGroups/<resource-group>"
-
-# User Access Administrator — required for Bicep to set RBAC role assignments
-# on Cosmos DB, Key Vault, Storage. Must be on RG level — resources don't
-# exist yet when the service principal is created (chicken-and-egg problem).
-az role assignment create \
-  --assignee <service-principal-app-id> \
-  --role "User Access Administrator" \
-  --scope "/subscriptions/<subscription-id>/resourceGroups/<resource-group>"
-```
-
-### 4. Add OIDC Federated Credential
+### 3. Add OIDC Federated Credential
 
 Use `Add-FederatedCredentialForGitHub.ps1` from [cloud-admin-toolkit](https://github.com/brands-advisory/cloud-admin-toolkit):
 
