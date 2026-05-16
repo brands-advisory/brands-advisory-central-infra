@@ -31,4 +31,7 @@ $config = @{
     # Cosmos DB
     CosmosAccountName    = "__COSMOS_ACCOUNT_NAME__"
     CosmosDatabaseName   = "__COSMOS_DATABASE_NAME__"
+
+    # Monitoring Alerts
+    AlertEmailAddress    = "__ALERT_EMAIL_ADDRESS__"
 }

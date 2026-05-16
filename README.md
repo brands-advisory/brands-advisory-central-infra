@@ -9,6 +9,7 @@ All resources are deployed via Bicep using `az deployment group create` and para
 ## Table of Contents
 
 - [Deployed Resources](#deployed-resources)
+  - [Monitoring Alerts](#monitoring-alerts)
 - [Repository Structure](#repository-structure)
 - [Initial Setup (once)](#initial-setup-once)
   - [1. Create Resource Group](#1-create-resource-group)
@@ -21,6 +22,7 @@ All resources are deployed via Bicep using `az deployment group create` and para
 - [Deployment](#deployment)
   - [Local](#local)
   - [GitHub Actions](#github-actions)
+- [Post-Deployment Checklist](#post-deployment-checklist)
 - [GitHub Secrets](#github-secrets)
 - [Tags](#tags)
 
@@ -131,6 +133,29 @@ another Free Tier account already exists in the subscription.
 Access is controlled via RBAC and not part of this deployment.
 
 **Outputs:** `cosmosAccountName`, `cosmosEndpoint`
+
+### Monitoring Alerts — `Microsoft.Insights/metricAlerts` + `Microsoft.Insights/actionGroups`
+
+| Property    | Value                              |
+|-------------|------------------------------------|
+| Module      | `modules/monitoringAlerts.bicep`   |
+| Location    | global (required for metric alerts)|
+| Notification| email via Action Group             |
+
+One Action Group (`ag-brands-advisory-central`) routes all alerts to the configured email (`ALERT_EMAIL`).
+
+| Alert rule                            | Resource         | Condition                       | Severity |
+|---------------------------------------|------------------|---------------------------------|----------|
+| `alert-cosmos-ru-high`                | Cosmos DB        | RU consumption > 80 %           | 2        |
+| `alert-cosmos-storage-high`           | Cosmos DB        | Storage > 20 GB (limit: 25 GB)  | 2        |
+| `alert-cosmos-throttled`              | Cosmos DB        | Throttled requests (429) > 0    | 1        |
+| `alert-plan-cpu-high`                 | App Service Plan | CPU > 80 % for 5 min            | 2        |
+| `alert-plan-memory-high`              | App Service Plan | Memory > 85 % for 5 min         | 2        |
+| `alert-appinsights-failed-requests`   | App Insights     | Failed requests > 10 in 5 min   | 2        |
+| `alert-kv-auth-failures`              | Key Vault        | HTTP 403 responses > 5 in 5 min | 2        |
+| `alert-storage-availability`          | Storage Account  | Availability < 99 %             | 1        |
+
+Severity scale: 0 = Critical, 1 = Error, 2 = Warning, 3 = Informational, 4 = Verbose.
 
 **Tags applied to all resources:**
 
@@ -261,6 +286,85 @@ then trigger the workflow manually or on push.
 
 ---
 
+## Post-Deployment Checklist
+
+The Bicep deployment provisions all resources but does not configure RBAC or upload secrets.
+Complete the following steps manually after the **first deployment** to a new environment.
+
+### 1. Key Vault — RBAC Role Assignments
+
+Grant identities the roles they need. Use the Key Vault URI from the deployment output (`keyVaultUri`).
+
+```powershell
+# Example: grant a developer read access to secrets
+az role assignment create \
+  --role "Key Vault Secrets User" \
+  --assignee <object-id-or-upn> \
+  --scope $(az keyvault show --name <keyVaultName> --query id -o tsv)
+```
+
+Common roles: `Key Vault Secrets User` (read), `Key Vault Secrets Officer` (write), `Key Vault Certificates Officer` (certificates).
+
+### 2. Key Vault — Upload Entra ID Certificate
+
+Upload the certificate used by consumer services (e.g. brands-advisory-cms) for Entra ID authentication.
+
+```powershell
+az keyvault certificate import \
+  --vault-name <keyVaultName> \
+  --name <certificate-name> \
+  --file <path-to-pfx> \
+  --password <pfx-password>
+```
+
+### 3. Storage Account — RBAC Role Assignments
+
+Grant App Service managed identities write access to blob containers.
+
+```powershell
+az role assignment create \
+  --role "Storage Blob Data Contributor" \
+  --assignee <managed-identity-object-id> \
+  --scope $(az storage account show --name <storageAccountName> --query id -o tsv)
+```
+
+### 4. Cosmos DB — RBAC Role Assignments
+
+Grant App Service managed identities data-plane access.
+
+```powershell
+az cosmosdb sql role assignment create \
+  --account-name <cosmosAccountName> \
+  --resource-group <ResourceGroup> \
+  --role-definition-name "Cosmos DB Built-in Data Contributor" \
+  --principal-id <managed-identity-object-id> \
+  --scope "/"
+```
+
+### 5. Retrieve and Distribute Outputs
+
+Retrieve deployment outputs to wire up consumer projects:
+
+```powershell
+az deployment group show \
+  --resource-group <ResourceGroup> \
+  --name main \
+  --query properties.outputs
+```
+
+| Output                        | Used by                                          |
+|-------------------------------|--------------------------------------------------|
+| `appServicePlanId`            | App Service resources in consumer projects       |
+| `keyVaultName`                | Services that read secrets or certificates       |
+| `keyVaultUri`                 | RBAC scope and SDK configuration                 |
+| `storageAccountName`          | Services that access blob storage                |
+| `blobEndpoint`                | Frontend image and asset URLs                    |
+| `appInsightsConnectionString` | `APPLICATIONINSIGHTS_CONNECTION_STRING` env var  |
+| `cosmosAccountName`           | Cosmos DB RBAC scope                             |
+| `cosmosEndpoint`              | SDK endpoint configuration                       |
+
+---
+
 ## GitHub Secrets
 
 The following secrets are set by `setup.ps1 -GitHub` and consumed by GitHub Actions workflows:
@@ -277,6 +381,9 @@ The following secrets are set by `setup.ps1 -GitHub` and consumed by GitHub Acti
 | `STORAGE_ACCOUNT_NAME`  | `StorageAccountName`   | Shared Storage Account name              |
 | `APP_INSIGHTS_NAME`     | `AppInsightsName`      | Application Insights instance name       |
 | `LOG_ANALYTICS_NAME`    | `LogAnalyticsName`     | Log Analytics Workspace name             |
+| `COSMOS_ACCOUNT_NAME`   | `CosmosAccountName`    | Cosmos DB account name                   |
+| `COSMOS_DATABASE_NAME`  | `CosmosDatabaseName`   | Cosmos DB database name                  |
+| `ALERT_EMAIL`           | `AlertEmailAddress`    | Recipient for monitoring alert emails    |
 
 ---
 

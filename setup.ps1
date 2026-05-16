@@ -52,6 +52,7 @@ if ($GitHub -or $All) {
     gh secret set LOG_ANALYTICS_NAME     --body $config.LogAnalyticsName
     gh secret set COSMOS_ACCOUNT_NAME    --body $config.CosmosAccountName
     gh secret set COSMOS_DATABASE_NAME   --body $config.CosmosDatabaseName
+    gh secret set ALERT_EMAIL            --body $config.AlertEmailAddress
 
     Write-Host "GitHub Secrets set." -ForegroundColor Green
 }
@@ -82,6 +83,7 @@ param appInsightsName      = '$($config.AppInsightsName)'
 param logAnalyticsName     = '$($config.LogAnalyticsName)'
 param cosmosAccountName    = '$($config.CosmosAccountName)'
 param cosmosDatabaseName   = '$($config.CosmosDatabaseName)'
+param alertEmailAddress    = '$($config.AlertEmailAddress)'
 "@
 
     $outputPath = Join-Path $infraDir "main.local.bicepparam"

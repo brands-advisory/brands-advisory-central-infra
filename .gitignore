@@ -1,5 +1,17 @@
 # Local secrets — never commit
 config.ps1
+.env
+.env.*
 
 # Generated Bicep parameter files with local values
 infra/main.local.bicepparam
+
+# IDE and OS artefacts
+.vs/
+*.user
+*.suo
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log

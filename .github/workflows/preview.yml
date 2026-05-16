@@ -26,21 +26,79 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      - name: Lint Bicep
+        run: |
+          az bicep install
+          az bicep lint --file infra/main.bicep
+
       - name: What-If
-        uses: azure/cli@v2
+        id: whatif
+        continue-on-error: true
+        run: |
+          az deployment group what-if \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --template-file infra/main.bicep \
+            --parameters \
+              location="${{ secrets.AZURE_LOCATION }}" \
+              planName="${{ secrets.PLAN_NAME }}" \
+              keyVaultName="${{ secrets.KEY_VAULT_NAME }}" \
+              tenantId="${{ secrets.AZURE_TENANT_ID }}" \
+              storageAccountName="${{ secrets.STORAGE_ACCOUNT_NAME }}" \
+              appInsightsName="${{ secrets.APP_INSIGHTS_NAME }}" \
+              logAnalyticsName="${{ secrets.LOG_ANALYTICS_NAME }}" \
+              cosmosAccountName="${{ secrets.COSMOS_ACCOUNT_NAME }}" \
+              cosmosDatabaseName="${{ secrets.COSMOS_DATABASE_NAME }}" \
+              alertEmailAddress="${{ secrets.ALERT_EMAIL }}" \
+            > whatif-output.txt 2>&1
+
+      - name: Post What-If as PR Comment
+        if: always()
+        uses: actions/github-script@v7
         with:
-          azcliversion: latest
-          inlineScript: |
-            az deployment group what-if \
-              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-              --template-file infra/main.bicep \
-              --parameters \
-                location="${{ secrets.AZURE_LOCATION }}" \
-                planName="${{ secrets.PLAN_NAME }}" \
-                keyVaultName="${{ secrets.KEY_VAULT_NAME }}" \
-                tenantId="${{ secrets.AZURE_TENANT_ID }}" \
-                storageAccountName="${{ secrets.STORAGE_ACCOUNT_NAME }}" \
-                appInsightsName="${{ secrets.APP_INSIGHTS_NAME }}" \
-                logAnalyticsName="${{ secrets.LOG_ANALYTICS_NAME }}" \
-                cosmosAccountName="${{ secrets.COSMOS_ACCOUNT_NAME }}" \
-                cosmosDatabaseName="${{ secrets.COSMOS_DATABASE_NAME }}"
+          script: |
+            const fs = require('fs');
+
+            let raw = '';
+            try {
+              raw = fs.readFileSync('whatif-output.txt', 'utf8');
+            } catch {
+              raw = 'No output captured.';
+            }
+
+            // Strip ANSI colour codes produced by az CLI
+            const clean = raw.replace(/\x1b\[[0-9;]*m/g, '').replace(/\r/g, '');
+            const truncated = clean.length > 60000
+              ? clean.substring(0, 60000) + '\n...(output truncated)'
+              : clean;
+
+            const success = '${{ steps.whatif.outcome }}' === 'success';
+            const icon = success ? '✅' : '❌';
+            const MARKER = '<!-- azure-whatif -->';
+            const body = `${MARKER}\n## ${icon} Azure What-If Results\n\n\`\`\`\n${truncated}\n\`\`\``;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c => c.body.includes(MARKER));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+      - name: Fail if What-If failed
+        if: steps.whatif.outcome == 'failure'
+        run: exit 1

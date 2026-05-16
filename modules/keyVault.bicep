@@ -17,12 +17,7 @@ param keyVaultName string
 param tenantId string
 
 @description('Resource tags.')
-param tags object = {
-  environment: 'prod'
-  tier: 'central'
-  project: 'brands-advisory-central-infra'
-  'managed-by': 'bicep'
-}
+param tags object = {}
 
 resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
   name: keyVaultName

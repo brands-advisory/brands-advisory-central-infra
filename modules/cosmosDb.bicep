@@ -17,12 +17,7 @@ param accountName string
 param databaseName string
 
 @description('Resource tags.')
-param tags object = {
-  environment: 'prod'
-  tier: 'central'
-  project: 'brands-advisory-central-infra'
-  'managed-by': 'bicep'
-}
+param tags object = {}
 
 // ---------------------------------------------------------------------------
 // Cosmos DB Account

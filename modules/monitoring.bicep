@@ -21,12 +21,7 @@ param appInsightsName string
 param retentionInDays int = 90
 
 @description('Resource tags.')
-param tags object = {
-  environment: 'prod'
-  tier: 'central'
-  project: 'brands-advisory-central-infra'
-  'managed-by': 'bicep'
-}
+param tags object = {}
 
 // ---------------------------------------------------------------------------
 // Log Analytics Workspace
