@@ -1,0 +1,4 @@
+# Generated Bicep artifacts
+main.json
+environments/*.json
+modules/*.json
