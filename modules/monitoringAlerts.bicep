@@ -255,7 +255,7 @@ resource failedRequestsAlert 'Microsoft.Insights/metricAlerts@2018-03-01' = {
       allOf: [
         {
           name: 'HighFailedRequests'
-          metricName: 'requests/failedCount'
+          metricName: 'requests/failed'
           operator: 'GreaterThan'
           threshold: 10
           timeAggregation: 'Count'
@@ -286,7 +286,7 @@ resource kvAuthAlert 'Microsoft.Insights/metricAlerts@2018-03-01' = {
       allOf: [
         {
           name: 'AuthFailures'
-          metricName: 'ServiceApiResultCount'
+          metricName: 'ServiceApiResult'
           operator: 'GreaterThan'
           threshold: 5
           timeAggregation: 'Count'
