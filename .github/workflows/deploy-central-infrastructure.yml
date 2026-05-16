@@ -51,6 +51,8 @@ jobs:
     needs: validate
     runs-on: ubuntu-latest
     environment: production
+    env:
+      AZURE_DEPLOYMENT_LOCATION: ${{ vars.AZURE_DEPLOYMENT_LOCATION }}
 
     steps:
       - name: Check out repository
@@ -70,6 +72,6 @@ jobs:
         run: >
           az deployment sub create
           --name central-infrastructure-${{ github.run_number }}
-          --location westeurope
+          --location ${AZURE_DEPLOYMENT_LOCATION}
           --template-file main.bicep
           --parameters @environments/production.bicepparam

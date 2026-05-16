@@ -16,6 +16,8 @@ main.bicepparam Default parameter file
 ## What gets deployed
 
 The current entry point deploys the central resource group `rg-brands-advisory-central` at subscription scope.
+`main.bicepparam` provides generic defaults for local validation, while
+`environments/production.bicepparam` contains the production deployment values used by the workflow.
 
 ## Prerequisites
 
@@ -23,6 +25,7 @@ The current entry point deploys the central resource group `rg-brands-advisory-c
 - An Azure subscription where the deployment identity can create resource groups
 - GitHub repository variables for the deployment workflow:
   - `AZURE_CLIENT_ID`
+  - `AZURE_DEPLOYMENT_LOCATION`
   - `AZURE_TENANT_ID`
   - `AZURE_SUBSCRIPTION_ID`
 
