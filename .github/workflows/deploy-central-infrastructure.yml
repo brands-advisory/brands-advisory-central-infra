@@ -1,0 +1,75 @@
+name: Deploy central infrastructure
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/deploy-central-infrastructure.yml'
+      - 'environments/**'
+      - 'main.bicep'
+      - 'main.bicepparam'
+      - 'modules/**'
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/deploy-central-infrastructure.yml'
+      - 'environments/**'
+      - 'main.bicep'
+      - 'main.bicepparam'
+      - 'modules/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Bicep CLI
+        uses: azure/setup-bicep@v2
+
+      - name: Lint entry point
+        run: bicep lint main.bicep
+
+      - name: Build entry point
+        run: bicep build main.bicep
+
+      - name: Build default parameters
+        run: bicep build-params main.bicepparam
+
+      - name: Build production parameters
+        run: bicep build-params environments/production.bicepparam
+
+  deploy:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Azure login with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Install Bicep CLI
+        uses: azure/setup-bicep@v2
+
+      - name: Deploy central resource group
+        run: >
+          az deployment sub create
+          --name central-infrastructure-${{ github.run_number }}
+          --location westeurope
+          --template-file main.bicep
+          --parameters @environments/production.bicepparam
