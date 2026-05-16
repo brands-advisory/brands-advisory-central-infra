@@ -26,6 +26,11 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      - name: Lint Bicep
+        run: |
+          az bicep install
+          az bicep lint --file infra/main.bicep
+
       - name: Deploy Bicep
         uses: azure/cli@v2
         with:
@@ -43,4 +48,5 @@ jobs:
                 appInsightsName="${{ secrets.APP_INSIGHTS_NAME }}" \
                 logAnalyticsName="${{ secrets.LOG_ANALYTICS_NAME }}" \
                 cosmosAccountName="${{ secrets.COSMOS_ACCOUNT_NAME }}" \
-                cosmosDatabaseName="${{ secrets.COSMOS_DATABASE_NAME }}"
+                cosmosDatabaseName="${{ secrets.COSMOS_DATABASE_NAME }}" \
+                alertEmailAddress="${{ secrets.ALERT_EMAIL }}"

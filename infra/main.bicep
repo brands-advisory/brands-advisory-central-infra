@@ -29,6 +29,17 @@ param cosmosAccountName string
 @description('Name of the Cosmos DB database.')
 param cosmosDatabaseName string
 
+@description('Resource tags applied to all deployed resources.')
+param tags object = {
+  environment: 'prod'
+  tier: 'central'
+  project: 'brands-advisory-central-infra'
+  'managed-by': 'bicep'
+}
+
+@description('Email address that receives monitoring alert notifications.')
+param alertEmailAddress string
+
 // ---------------------------------------------------------------------------
 // App Service Plan
 // ---------------------------------------------------------------------------
@@ -37,6 +48,7 @@ module appServicePlan '../modules/appServicePlan.bicep' = {
   params: {
     planName: planName
     location: location
+    tags: tags
   }
 }
 
@@ -49,6 +61,7 @@ module keyVault '../modules/keyVault.bicep' = {
     keyVaultName: keyVaultName
     location: location
     tenantId: tenantId
+    tags: tags
   }
 }
 
@@ -60,6 +73,7 @@ module storageAccount '../modules/storageAccount.bicep' = {
   params: {
     storageAccountName: storageAccountName
     location: location
+    tags: tags
   }
 }
 
@@ -72,6 +86,7 @@ module monitoring '../modules/monitoring.bicep' = {
     logAnalyticsName: logAnalyticsName
     appInsightsName: appInsightsName
     location: location
+    tags: tags
   }
 }
 
@@ -84,7 +99,31 @@ module cosmosDb '../modules/cosmosDb.bicep' = {
     accountName: cosmosAccountName
     databaseName: cosmosDatabaseName
     location: location
+    tags: tags
   }
+}
+
+// ---------------------------------------------------------------------------
+// Monitoring Alerts
+// ---------------------------------------------------------------------------
+module alerts '../modules/monitoringAlerts.bicep' = {
+  name: 'monitoringAlerts'
+  params: {
+    alertEmailAddress: alertEmailAddress
+    cosmosAccountName: cosmosAccountName
+    appServicePlanName: planName
+    appInsightsName: appInsightsName
+    keyVaultName: keyVaultName
+    storageAccountName: storageAccountName
+    tags: tags
+  }
+  dependsOn: [
+    appServicePlan
+    keyVault
+    storageAccount
+    monitoring
+    cosmosDb
+  ]
 }
 
 // ---------------------------------------------------------------------------

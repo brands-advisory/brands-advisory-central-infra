@@ -6,12 +6,7 @@ param planName string
 param location string
 
 @description('Resource tags.')
-param tags object = {
-  environment: 'prod'
-  tier: 'central'
-  project: 'brands-advisory-central-infra'
-  'managed-by': 'bicep'
-}
+param tags object = {}
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2024-11-01' = {
   name: planName

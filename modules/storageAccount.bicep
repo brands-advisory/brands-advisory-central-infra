@@ -15,12 +15,7 @@ param location string
 param storageAccountName string
 
 @description('Resource tags.')
-param tags object = {
-  environment: 'prod'
-  tier: 'central'
-  project: 'brands-advisory-central-infra'
-  'managed-by': 'bicep'
-}
+param tags object = {}
 
 // ---------------------------------------------------------------------------
 // Storage Account
