@@ -1,0 +1,5 @@
+# Local secrets — never commit
+config.ps1
+
+# Generated Bicep parameter files with local values
+infra/main.local.bicepparam
