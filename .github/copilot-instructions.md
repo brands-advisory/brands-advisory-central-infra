@@ -29,7 +29,7 @@
 - Never hardcode tags directly on resources — always use the `tags` parameter.
 
 ## Documentation
-- Keep README.md up to date when adding new features, 
+- Keep README.md up to date when adding new features, new modules, new scripts,
   configuration values, or deployment steps
 - Add XML doc comments to all public interfaces and methods
 - Document any new __PLACEHOLDER__ values in README.md 

@@ -118,7 +118,8 @@ Shared monitoring instance for all brands-advisory services. Each application mu
 
 | Property            | Value                               |
 |---------------------|-------------------------------------|
-| Default name        | configurable via `CosmosAccountName` |
+| Account name        | configurable via `CosmosAccountName` |
+| Database name       | configurable via `CosmosDatabaseName` |
 | API                 | NoSQL (GlobalDocumentDB)            |
 | Free Tier           | enabled (one per subscription)      |
 | Consistency         | Session                             |
@@ -179,6 +180,7 @@ brands-advisory-central-infra/
 │   └── appServicePlan.bicep     # Linux PremiumV4 App Service Plan
 ├── config.example.ps1           # Configuration template — copy to config.ps1
 ├── setup.ps1                    # Distributes config values to GitHub Secrets / bicepparam
+├── Check-Deployment.ps1         # Runs what-if against Azure to preview changes
 ├── .gitignore
 └── README.md
 ```
@@ -246,10 +248,13 @@ Copy-Item config.example.ps1 config.ps1
 | `TenantId`           | Entra ID Tenant ID                                                 |
 | `AzureClientId`      | Client ID of the GitHub Actions OIDC service principal             |
 | `PlanName`           | Name of the App Service Plan (default: `plan-brands-advisory`)     |
-| `KeyVaultName`       | Name of the shared Key Vault (for future use)                      |
-| `StorageAccountName` | Name of the shared Storage Account (for future use)                |
-| `AppInsightsName`    | Name of the Application Insights instance (for future use)         |
-| `LogAnalyticsName`   | Name of the Log Analytics Workspace (for future use)               |
+| `KeyVaultName`       | Name of the shared Key Vault                                       |
+| `StorageAccountName` | Name of the shared Storage Account                                 |
+| `AppInsightsName`    | Name of the Application Insights instance                          |
+| `LogAnalyticsName`   | Name of the Log Analytics Workspace                                |
+| `CosmosAccountName`  | Globally unique name of the Cosmos DB account                      |
+| `CosmosDatabaseName` | Name of the Cosmos DB database                                     |
+| `AlertEmailAddress`  | Email address for monitoring alert notifications                   |
 
 ### Applying Configuration
 
@@ -271,7 +276,10 @@ Copy-Item config.example.ps1 config.ps1
 # 1. Generate infra/main.local.bicepparam from config.ps1
 .\setup.ps1 -Bicep
 
-# 2. Deploy to Azure
+# 2. Preview changes (What-If) — shows what would be created/modified without deploying
+.\Check-Deployment.ps1
+
+# 3. Deploy to Azure
 az deployment group create `
   --resource-group <ResourceGroup> `
   --template-file infra/main.bicep `
