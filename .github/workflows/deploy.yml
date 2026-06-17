@@ -49,4 +49,5 @@ jobs:
                 logAnalyticsName="${{ secrets.LOG_ANALYTICS_NAME }}" \
                 cosmosAccountName="${{ secrets.COSMOS_ACCOUNT_NAME }}" \
                 cosmosDatabaseName="${{ secrets.COSMOS_DATABASE_NAME }}" \
+                cosmosDatabaseSharedThroughput="${{ secrets.COSMOS_DATABASE_SHARED_THROUGHPUT != '' && secrets.COSMOS_DATABASE_SHARED_THROUGHPUT || '0' }}" \
                 alertEmailAddress="${{ secrets.ALERT_EMAIL }}"

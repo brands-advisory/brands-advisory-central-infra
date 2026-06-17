@@ -123,17 +123,19 @@ Shared monitoring instance for all brands-advisory services. Each application mu
 | API                 | NoSQL (GlobalDocumentDB)            |
 | Free Tier           | enabled (one per subscription)      |
 | Consistency         | Session                             |
-| Throughput          | DB shared throughput: 1000 RU/s + account limit: 1000 RU/s |
+| Throughput          | Account limit: 1000 RU/s; optional DB shared throughput via parameter |
 | Containers          | none — created by apps at startup   |
 | Module              | `modules/cosmosDb.bicep`            |
 
 Deploys a Cosmos DB account and a database. No containers are provisioned here —
 containers are created by the individual applications at startup.
-The database is configured with shared throughput (`throughput: 1000`) so containers
-created by applications in this database use the same RU pool.
-This shared throughput is configured directly on the SQL database resource (`properties.options`).
 The account is configured with `totalThroughputLimit: 1000` so all databases/containers
 under the account cannot exceed the Free Tier maximum throughput budget in total.
+Database-level shared throughput is optional via `CosmosDatabaseSharedThroughput`
+(default `0`, disabled).
+If an existing database was originally created without dedicated/shared throughput,
+Azure may reject in-place throughput updates. In that case, create a new database
+with throughput enabled and migrate containers/data.
 Free Tier covers the first 1000 RU/s and 25 GB — disable it (`enableFreeTier: false`) if
 another Free Tier account already exists in the subscription.
 Access is controlled via RBAC and not part of this deployment.
@@ -259,6 +261,7 @@ Copy-Item config.example.ps1 config.ps1
 | `LogAnalyticsName`   | Name of the Log Analytics Workspace                                |
 | `CosmosAccountName`  | Globally unique name of the Cosmos DB account                      |
 | `CosmosDatabaseName` | Name of the Cosmos DB database                                     |
+| `CosmosDatabaseSharedThroughput` | Optional DB shared throughput RU/s (`0` = disabled)         |
 | `AlertEmailAddress`  | Email address for monitoring alert notifications                   |
 
 ### Applying Configuration
@@ -396,8 +399,8 @@ The following secrets are set by `setup.ps1 -GitHub` and consumed by GitHub Acti
 | `LOG_ANALYTICS_NAME`    | `LogAnalyticsName`     | Log Analytics Workspace name             |
 | `COSMOS_ACCOUNT_NAME`   | `CosmosAccountName`    | Cosmos DB account name                   |
 | `COSMOS_DATABASE_NAME`  | `CosmosDatabaseName`   | Cosmos DB database name                  |
+| `COSMOS_DATABASE_SHARED_THROUGHPUT` | `CosmosDatabaseSharedThroughput` | Optional DB shared throughput RU/s (`0` = disabled) |
 | `ALERT_EMAIL`           | `AlertEmailAddress`    | Recipient for monitoring alert emails    |
-
 ---
 
 ## Tags

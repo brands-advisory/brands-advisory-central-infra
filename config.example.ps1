@@ -29,8 +29,9 @@ $config = @{
     LogAnalyticsName     = "__LOG_ANALYTICS_NAME__"
 
     # Cosmos DB
-    CosmosAccountName    = "__COSMOS_ACCOUNT_NAME__"
-    CosmosDatabaseName   = "__COSMOS_DATABASE_NAME__"
+    CosmosAccountName             = "__COSMOS_ACCOUNT_NAME__"
+    CosmosDatabaseName            = "__COSMOS_DATABASE_NAME__"
+    CosmosDatabaseSharedThroughput = 0  # 0 = disabled, e.g. 1000 for shared DB RU/s
 
     # Monitoring Alerts
     AlertEmailAddress    = "__ALERT_EMAIL_ADDRESS__"

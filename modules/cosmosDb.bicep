@@ -16,6 +16,10 @@ param accountName string
 @description('Name of the Cosmos DB database.')
 param databaseName string
 
+@description('Optional shared throughput (RU/s) for the database. Use 0 to disable DB-level throughput.')
+@minValue(0)
+param databaseSharedThroughput int = 0
+
 @description('Resource tags.')
 param tags object = {}
 
@@ -54,7 +58,17 @@ resource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2024-05-15' = {
 // ---------------------------------------------------------------------------
 // Database
 // ---------------------------------------------------------------------------
-resource cosmosDatabase 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2024-05-15' = {
+resource cosmosDatabaseNoThroughput 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2024-05-15' = if (databaseSharedThroughput == 0) {
+  parent: cosmosAccount
+  name: databaseName
+  properties: {
+    resource: {
+      id: databaseName
+    }
+  }
+}
+
+resource cosmosDatabaseWithThroughput 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2024-05-15' = if (databaseSharedThroughput > 0) {
   parent: cosmosAccount
   name: databaseName
   properties: {
@@ -63,7 +77,7 @@ resource cosmosDatabase 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2024
     }
     options: {
       // Shared throughput pool for all containers inside this database.
-      throughput: 1000
+      throughput: databaseSharedThroughput
     }
   }
 }

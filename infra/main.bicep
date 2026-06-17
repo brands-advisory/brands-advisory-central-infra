@@ -29,6 +29,10 @@ param cosmosAccountName string
 @description('Name of the Cosmos DB database.')
 param cosmosDatabaseName string
 
+@description('Optional shared throughput (RU/s) for the Cosmos DB database. Use 0 to disable DB-level throughput.')
+@minValue(0)
+param cosmosDatabaseSharedThroughput int = 0
+
 @description('Resource tags applied to all deployed resources.')
 param tags object = {
   environment: 'prod'
@@ -98,6 +102,7 @@ module cosmosDb '../modules/cosmosDb.bicep' = {
   params: {
     accountName: cosmosAccountName
     databaseName: cosmosDatabaseName
+    databaseSharedThroughput: cosmosDatabaseSharedThroughput
     location: location
     tags: tags
   }
