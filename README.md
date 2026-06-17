@@ -131,6 +131,7 @@ Deploys a Cosmos DB account and a database. No containers are provisioned here â
 containers are created by the individual applications at startup.
 The database is configured with shared throughput (`throughput: 1000`) so containers
 created by applications in this database use the same RU pool.
+This shared throughput is configured directly on the SQL database resource (`properties.options`).
 The account is configured with `totalThroughputLimit: 1000` so all databases/containers
 under the account cannot exceed the Free Tier maximum throughput budget in total.
 Free Tier covers the first 1000 RU/s and 25 GB â€” disable it (`enableFreeTier: false`) if

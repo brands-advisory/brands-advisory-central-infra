@@ -61,14 +61,7 @@ resource cosmosDatabase 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2024
     resource: {
       id: databaseName
     }
-  }
-}
-
-resource cosmosDatabaseThroughput 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/throughputSettings@2024-05-15' = {
-  parent: cosmosDatabase
-  name: 'default'
-  properties: {
-    resource: {
+    options: {
       // Shared throughput pool for all containers inside this database.
       throughput: 1000
     }
