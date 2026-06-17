@@ -123,12 +123,14 @@ Shared monitoring instance for all brands-advisory services. Each application mu
 | API                 | NoSQL (GlobalDocumentDB)            |
 | Free Tier           | enabled (one per subscription)      |
 | Consistency         | Session                             |
-| Throughput          | Free Tier (1000 RU/s, 25 GB)        |
+| Throughput          | Account-level limit: 1000 RU/s (Free Tier max) |
 | Containers          | none — created by apps at startup   |
 | Module              | `modules/cosmosDb.bicep`            |
 
 Deploys a Cosmos DB account and a database. No containers are provisioned here —
 containers are created by the individual applications at startup.
+The account is configured with `totalThroughputLimit: 1000` so all databases/containers
+under the account stay within the shared Free Tier maximum throughput budget.
 Free Tier covers the first 1000 RU/s and 25 GB — disable it (`enableFreeTier: false`) if
 another Free Tier account already exists in the subscription.
 Access is controlled via RBAC and not part of this deployment.

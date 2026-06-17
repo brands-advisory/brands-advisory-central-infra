@@ -30,6 +30,11 @@ resource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2024-05-15' = {
   properties: {
     // Free Tier: first 1000 RU/s and 25 GB free — one per subscription
     enableFreeTier: true
+    // Cap total account throughput to Free Tier maximum so all child databases/containers
+    // operate within a shared account-wide limit.
+    capacity: {
+      totalThroughputLimit: 1000
+    }
     databaseAccountOfferType: 'Standard'
     consistencyPolicy: {
       defaultConsistencyLevel: 'Session'
