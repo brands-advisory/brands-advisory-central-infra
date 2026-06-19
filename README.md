@@ -159,7 +159,7 @@ One Action Group (`ag-brands-advisory-central`) routes all alerts to the configu
 | `alert-cosmos-throttled`              | Cosmos DB        | Throttled requests (429) > 0    | 1        |
 | `alert-plan-cpu-high`                 | App Service Plan | CPU > 80 % for 5 min            | 2        |
 | `alert-plan-memory-high`              | App Service Plan | Memory > 85 % for 5 min         | 2        |
-| `alert-appinsights-failed-requests`   | App Insights     | Failed requests > 10 in 5 min   | 2        |
+| `alert-appinsights-failed-requests`   | App Insights     | Failed requests > 10 in 5 min, excluding 404s | 2        |
 | `alert-kv-auth-failures`              | Key Vault        | HTTP 403 responses > 5 in 5 min | 2        |
 | `alert-storage-availability`          | Storage Account  | Availability < 99 %             | 1        |
 
