@@ -244,7 +244,7 @@ resource failedRequestsAlert 'Microsoft.Insights/metricAlerts@2018-03-01' = {
   location: 'global'
   tags: tags
   properties: {
-    description: 'More than 10 failed HTTP requests in 5 minutes, excluding normal 404 Not Found responses.'
+    description: 'More than 10 failed HTTP requests in 5 minutes, excluding normal 404 Not Found and expected 429 throttling responses.'
     severity: 2
     enabled: true
     scopes: [resourceId('Microsoft.Insights/components', appInsightsName)]
@@ -264,7 +264,7 @@ resource failedRequestsAlert 'Microsoft.Insights/metricAlerts@2018-03-01' = {
             {
               name: 'request/resultCode'
               operator: 'Exclude'
-              values: ['404']
+              values: ['404', '429']
             }
           ]
         }
